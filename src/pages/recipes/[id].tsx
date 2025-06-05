@@ -1,9 +1,12 @@
 import React from 'react';
 import { Suspense, lazy } from 'react';
 import { GetServerSidePropsContext } from 'next';
+import ErrorMessage from '../../components/ErrorMessage';
 
 // Lazy-load the RecipeDetailsContent component
-const RecipeDetailsContent = lazy(() => import('../../components/RecipeDetailsContent'));
+const RecipeDetailsContent = lazy(
+  () => import('../../components/RecipeDetailsContent')
+);
 
 interface RecipeDetails {
   id: number;
@@ -21,7 +24,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   try {
     const res = await fetch(url);
     if (!res.ok) {
-      throw new Error('Failed to fetch recipe');
+      throw new Error(
+        'Failed to fetch recipe details. Please try again later.'
+      );
     }
     const data = await res.json();
     return { props: { recipe: data } };
@@ -30,14 +35,31 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 }
 
-export default function RecipeDetails({ recipe, error }: { recipe?: RecipeDetails; error?: string }) {
-  if (error) {
-    return <div className="container mx-auto p-4">Error: {error}</div>;
-  }
-
+export default function RecipeDetails({
+  recipe,
+  error,
+}: {
+  recipe?: RecipeDetails;
+  error?: string;
+}) {
   return (
-      <Suspense fallback={<div className="container mx-auto p-4">Loading recipe details...</div>}>
-        <RecipeDetailsContent recipe={recipe!} />
-      </Suspense>
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      {error && (
+        <div className="max-w-3xl mx-auto">
+          <ErrorMessage message={error} />
+        </div>
+      )}
+      {!error && (
+        <Suspense
+          fallback={
+            <div className="max-w-3xl mx-auto text-center text-gray-600">
+              <p className="text-lg">Loading recipe details...</p>
+            </div>
+          }
+        >
+          <RecipeDetailsContent recipe={recipe!} />
+        </Suspense>
+      )}
+    </div>
   );
 }

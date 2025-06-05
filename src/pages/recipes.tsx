@@ -1,6 +1,7 @@
 import React from 'react';
 import { Suspense, lazy } from 'react';
 import { GetServerSidePropsContext } from 'next';
+import ErrorMessage from '../components/ErrorMessage';
 
 // Lazy-load the RecipeCard component
 const RecipeCard = lazy(() => import('../components/RecipeCard'));
@@ -42,7 +43,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   try {
     const res = await fetch(url);
     if (!res.ok) {
-      throw new Error('Failed to fetch recipes');
+      throw new Error('Failed to fetch recipes. Please try again later.');
     }
     const data = await res.json();
     cache.set(cacheKey, { data: data.results, timestamp: now });
@@ -52,25 +53,43 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 }
 
-export default function Recipes({ recipes, error }: { recipes: Recipe[]; error?: string }) {
-  if (error) {
-    return <div className="container mx-auto p-4">Error: {error}</div>;
-  }
-
-  if (recipes.length === 0) {
-    return <div className="container mx-auto p-4">No recipes found.</div>;
-  }
-
+export default function Recipes({
+  recipes,
+  error,
+}: {
+  recipes: Recipe[];
+  error?: string;
+}) {
   return (
-      <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">Recipes</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Suspense fallback={<div className="text-center">Loading recipes...</div>}>
-            {recipes.map((recipe) => (
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+          Recipes
+        </h1>
+        {error && <ErrorMessage message={error} />}
+        {!error && recipes.length === 0 && (
+          <div className="text-center text-gray-600">
+            <p className="text-lg">
+              No recipes found. Try adjusting your search!
+            </p>
+          </div>
+        )}
+        {!error && recipes.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Suspense
+              fallback={
+                <div className="col-span-full text-center text-gray-600">
+                  <p className="text-lg">Loading recipes...</p>
+                </div>
+              }
+            >
+              {recipes.map(recipe => (
                 <RecipeCard key={recipe.id} recipe={recipe} />
-            ))}
-          </Suspense>
-        </div>
+              ))}
+            </Suspense>
+          </div>
+        )}
       </div>
+    </div>
   );
 }
