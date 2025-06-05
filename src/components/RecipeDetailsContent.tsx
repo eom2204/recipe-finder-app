@@ -1,5 +1,13 @@
+import React from 'react';
+
 interface RecipeDetailsContentProps {
-    recipe: any;
+    recipe: {
+        id: number;
+        title: string;
+        readyInMinutes: number;
+        servings: number;
+        extendedIngredients: { id: number; original: string }[];
+    };
 }
 
 export default function RecipeDetailsContent({ recipe }: RecipeDetailsContentProps) {
@@ -10,7 +18,7 @@ export default function RecipeDetailsContent({ recipe }: RecipeDetailsContentPro
             <p className="mb-4">Servings: {recipe.servings}</p>
             <h2 className="text-2xl mb-2">Ingredients</h2>
             <ul className="list-disc pl-5">
-                {recipe.extendedIngredients.map((ingredient: any) => (
+                {recipe.extendedIngredients.map((ingredient) => (
                     <li key={ingredient.id}>{ingredient.original}</li>
                 ))}
             </ul>
